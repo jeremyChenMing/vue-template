@@ -10,13 +10,9 @@
       <li><a href="https://twitter.com/vuejs" target="_blank">Twitter</a></li>
     </ul>
     <div class="box">
-      <h2>jeremu11111---</h2>
-      <img src="./assets/home.png">  
+      <h2>jeremu11111---</h2> 
     </div>
     <div class="upvi-icon icon">&#xe729;</div>
-    <mt-button type="default">default</mt-button>
-
-    <mt-button type="primary" size="large">primary</mt-button>
   </div>
 </template>
 
@@ -32,12 +28,12 @@ export default {
   created() {
     console.log('entry in created lifeCycle')
     const id = 'b8c0d143-46dd-11e8-b9da-0a580af4030b'
-    const token = this.getToken()
-    getSomeMes(id, {}, token).then( data => {
-      console.log(data)
-    }).catch(err => {
-      console.log(err)
-    })
+    // const token = this.getToken()
+    // getSomeMes(id, {}, token).then( data => {
+    //   console.log(data)
+    // }).catch(err => {
+    //   console.log(err)
+    // })
   },
   mounted() {
     // console.log('entry in mounted lifeCycle')
@@ -54,6 +50,7 @@ export default {
 @import '../common/index.less';
 .box{
   background-color: rgba(0,0,0,.1);
+  // display: flex;
   & > img{
     width: 100%;
   }

@@ -3,6 +3,10 @@ var webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const glob = require('glob');
+const bundleConfig = require('./assets.json');
+const prod = process.env.NODE_ENV === 'production' ? true : false;
+const prev = prod ? '' : '../dist';
+
 
 let entryObj = getEntry();
 let pageNameList = Object.keys(entryObj);
@@ -27,12 +31,15 @@ function getEntry() {
         });
     return entry;
 };
+
+
+console.log(prev + bundleConfig.dll.js, '#')
 module.exports = {
   entry: entryObj,
   output: {
     path: path.resolve(__dirname, './dist'),
     filename: 'js/[name].js',
-    chunkFilename: 'js/common/[id].chunk.js',//按需加载js命名
+    chunkFilename: 'js/common/[id].chunk.js',//按需加载js命名 require.ensure中使用的
     publicPath: '/'
   },
   module: {
@@ -47,8 +54,13 @@ module.exports = {
         test: /\.vue$/,
         loader: 'vue-loader',
         options: {
-          loaders: {
-          }
+          postcss: [
+            require('autoprefixer')({ 
+              browsers: ['last 10 Chrome versions', 'last 5 Firefox versions', 'Safari >= 6', 'ie > 8'] 
+            })
+          ]
+          // loaders: {
+          // }
           // other vue-loader options go here
         }
       },
@@ -99,15 +111,23 @@ module.exports = {
         // minChunks: Infinity,
         minChunks: pageNameList.length,//至少三个模块共有部分，才会进行提取
     }),
+    new webpack.DllReferencePlugin({
+        // context: path.resolve(__dirname,'./src'), // 指定一个路径作为上下文环境，需要与DllPlugin的context参数保持一致，建议统一设置为项目根目录
+        manifest: require('./manifest.json'), // 指定manifest.json
+    }),
   ]
 }
+
+
 
 function getHtmlPlugin(name) {
     return (new HtmlWebpackPlugin({
         // favicon: resolve('../src/APPcommon/img/fav.png'),
         filename: name + '.html',
+        title: name,
         template: './template/index.html',
         inject: 'body',
+        bundleName: prev + bundleConfig.dll.js,
         chunks: ['vendors', name],
         minify: {
             removeAttributeQuotes: true,
@@ -120,13 +140,14 @@ module.exports.plugins = (module.exports.plugins || []).concat(proHtmlPlugin);
 if (process.env.NODE_ENV === 'production') {
   // module.exports.devtool = '#source-map' //映射文件，方便调试 //取消
   module.exports.plugins = (module.exports.plugins || []).concat([
+    
     new webpack.DefinePlugin({
       'process.env': {
         NODE_ENV: '"production"'
       }
     }),
     new webpack.optimize.UglifyJsPlugin({
-      sourceMap: true,
+      sourceMap: false,
       compress: {
         warnings: false
       }
@@ -134,7 +155,7 @@ if (process.env.NODE_ENV === 'production') {
     new webpack.LoaderOptionsPlugin({
       minimize: true
     }),
-    new CleanWebpackPlugin('./dist'),
+    // new CleanWebpackPlugin('./dist'),
   ])
 }
 

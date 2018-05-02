@@ -3,13 +3,11 @@
   <head>
     <meta charset="utf-8">
     <meta charset="utf-8" name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
-    <title>in</title>
+    <title><%= htmlWebpackPlugin.options.title %></title>
     <script type="text/javascript">
         (function (global) {
             function remchange() {
               document.documentElement.style.fontSize = document.documentElement.clientWidth / 375 * 20 + 'px';
-              console.log(document.documentElement.clientWidth)
-              console.log(document.documentElement.style.fontSize)
             }
             remchange()
             global.addEventListener('resize', remchange, false)
@@ -18,5 +16,6 @@
   </head>
   <body>
     <div id="app"></div>
+    <script type="text/javascript" src="<%= htmlWebpackPlugin.options.bundleName %>"></script>
   </body>
 </html>
