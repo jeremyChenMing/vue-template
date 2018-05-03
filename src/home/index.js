@@ -1,9 +1,9 @@
 import Vue from 'vue'
 import App from './Home.vue'
 
-import mintui from '../common/mint-ui';
+// import mintui from '../common/mint-ui';
 
-mintui()
+// mintui()
 
 new Vue({
   el: '#app',

@@ -24,7 +24,7 @@ function getEntry() {
             var eArr = [];
             var n = name.slice(start, end);
             n = n.split('/')[0];
-            if (n !== 'common') {
+            if (n !== 'common' && n !== 'home') {
               eArr.push(name);
               entry[n] = eArr;  
             }
@@ -32,10 +32,8 @@ function getEntry() {
     return entry;
 };
 
-
-console.log(prev + bundleConfig.dll.js, '#')
 module.exports = {
-  entry: entryObj,
+  entry: entryObj, //只用一个index文件夹， 其余过滤掉， 提及会小于1M
   output: {
     path: path.resolve(__dirname, './dist'),
     filename: 'js/[name].js',
@@ -109,7 +107,19 @@ module.exports = {
     new webpack.optimize.CommonsChunkPlugin({
         name: 'vendors',//公共模块提取
         // minChunks: Infinity,
-        minChunks: pageNameList.length,//至少三个模块共有部分，才会进行提取
+        // minChunks: pageNameList.length,//至少三个模块共有部分，才会进行提取
+
+        minChunks (module) {
+          // any required modules inside node_modules are extracted to vendor
+          return (
+            module.resource &&
+            /\.js$/.test(module.resource) &&
+            module.resource.indexOf(
+              path.join(__dirname, './node_modules')
+            ) === 0
+          )
+        }
+
     }),
     new webpack.DllReferencePlugin({
         // context: path.resolve(__dirname,'./src'), // 指定一个路径作为上下文环境，需要与DllPlugin的context参数保持一致，建议统一设置为项目根目录
@@ -121,7 +131,8 @@ module.exports = {
 
 
 function getHtmlPlugin(name) {
-    return (new HtmlWebpackPlugin({
+    return (
+      new HtmlWebpackPlugin({
         // favicon: resolve('../src/APPcommon/img/fav.png'),
         filename: name + '.html',
         title: name,
@@ -133,14 +144,15 @@ function getHtmlPlugin(name) {
             removeAttributeQuotes: true,
             collapseWhitespace: true
         }
-    })
+      })
     )
 }
+
 module.exports.plugins = (module.exports.plugins || []).concat(proHtmlPlugin);
 if (process.env.NODE_ENV === 'production') {
   // module.exports.devtool = '#source-map' //映射文件，方便调试 //取消
   module.exports.plugins = (module.exports.plugins || []).concat([
-    
+    new webpack.optimize.ModuleConcatenationPlugin(),
     new webpack.DefinePlugin({
       'process.env': {
         NODE_ENV: '"production"'
@@ -149,7 +161,8 @@ if (process.env.NODE_ENV === 'production') {
     new webpack.optimize.UglifyJsPlugin({
       sourceMap: false,
       compress: {
-        warnings: false
+        warnings: false,
+        drop_console: true
       }
     }),
     new webpack.LoaderOptionsPlugin({

@@ -6,7 +6,6 @@ import Vue from 'vue';
 import { 
     Button,
 } from 'mint-ui';
-import 'mint-ui/lib/style.css';
 
 
 

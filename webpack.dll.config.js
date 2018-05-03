@@ -31,8 +31,5 @@ module.exports = {
       name: '[name]',
       // context: path.resolve(__dirname,'./src')
     })
-    
-
-
   ],
 };

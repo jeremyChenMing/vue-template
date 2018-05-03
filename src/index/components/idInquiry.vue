@@ -42,6 +42,7 @@
 
 <template>
   <section class="id-inquiry">
+    <router-view></router-view>
     <div class="form name">
       <span class="form-label">姓名</span><input class="form-input-text" type="text" :placeholder="namePlaceholder" v-model="username">
     </div>
@@ -53,6 +54,7 @@
 			<span>查询</span><span class="restnum">（今天剩余{{ restNum }}次）</span>
 		</div>
   </section>
+  
 </template>
 
 <script>
