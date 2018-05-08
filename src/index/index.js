@@ -1,10 +1,8 @@
 import Vue from 'vue'
 import App from './App.vue'
 import router from './router/router.js';
-
-
-// 按需引入
-import mintui from '../common/mint-ui';
+import '../common/index.less'
+import mintui from '../common/mint-ui'
 mintui()
 
 

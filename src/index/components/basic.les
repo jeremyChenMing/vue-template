@@ -1,0 +1,14 @@
+.content {
+  text-align: center;
+  background-color: #cff;
+  .title {
+    font-size: 1rem;
+  }
+}
+.list{
+    display: flex;
+    & > li{
+        flex: 1;
+        background: #ffc;
+    }
+}

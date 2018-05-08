@@ -36,8 +36,8 @@ module.exports = {
   entry: entryObj, //只用一个index文件夹， 其余过滤掉， 提及会小于1M
   output: {
     path: path.resolve(__dirname, './dist'),
-    filename: 'js/[name].js',
-    chunkFilename: 'js/common/[id].chunk.js',//按需加载js命名 require.ensure中使用的
+    filename: prod ? 'js/[name].[chunkhash].js' : 'js/[name].js',
+    chunkFilename: prod ? 'js/[id].[chunkhash].js' : 'js/[id].chunk.js',//按需加载js命名 require.ensure中使用的
     publicPath: '/'
   },
   module: {
@@ -52,19 +52,30 @@ module.exports = {
         test: /\.vue$/,
         loader: 'vue-loader',
         options: {
+          loaders: {
+            css: [ 'vue-style-loader', {loader: "css-loader", options: {sourceMap: true}}],
+            less: [
+              'vue-style-loader',
+              { loader: "css-loader",  options: { sourceMap: true  } }, 
+              { loader: "less-loader", options: { sourceMap: true } }
+            ]
+          },
           postcss: [
             require('autoprefixer')({ 
               browsers: ['last 10 Chrome versions', 'last 5 Firefox versions', 'Safari >= 6', 'ie > 8'] 
             })
           ]
-          // loaders: {
-          // }
-          // other vue-loader options go here
         }
       },
       {
         test: /\.less$/,
-        loader: 'style-loader!css-loader!less-loader'
+        // loader: 'style-loader!css-loader!less-loader'
+        use: [
+          'vue-style-loader',
+          { loader: "css-loader", options: {sourceMap: true} },
+          { loader: "postcss-loader", options: {sourceMap: true} },
+          { loader: "less-loader", options: {sourceMap: true} }
+        ]
       },
       {
         test: /\.js$/,
@@ -104,23 +115,6 @@ module.exports = {
   },
   devtool: '#eval-source-map',
   plugins: [
-    new webpack.optimize.CommonsChunkPlugin({
-        name: 'vendors',//公共模块提取
-        // minChunks: Infinity,
-        // minChunks: pageNameList.length,//至少三个模块共有部分，才会进行提取
-
-        minChunks (module) {
-          // any required modules inside node_modules are extracted to vendor
-          return (
-            module.resource &&
-            /\.js$/.test(module.resource) &&
-            module.resource.indexOf(
-              path.join(__dirname, './node_modules')
-            ) === 0
-          )
-        }
-
-    }),
     new webpack.DllReferencePlugin({
         // context: path.resolve(__dirname,'./src'), // 指定一个路径作为上下文环境，需要与DllPlugin的context参数保持一致，建议统一设置为项目根目录
         manifest: require('./manifest.json'), // 指定manifest.json
@@ -139,7 +133,7 @@ function getHtmlPlugin(name) {
         template: './template/index.html',
         inject: 'body',
         bundleName: prev + bundleConfig.dll.js,
-        chunks: ['vendors', name],
+        chunks: ['manifest', 'vendors', name],
         minify: {
             removeAttributeQuotes: true,
             collapseWhitespace: true
@@ -149,10 +143,10 @@ function getHtmlPlugin(name) {
 }
 
 module.exports.plugins = (module.exports.plugins || []).concat(proHtmlPlugin);
-if (process.env.NODE_ENV === 'production') {
+if (prod) {
   // module.exports.devtool = '#source-map' //映射文件，方便调试 //取消
   module.exports.plugins = (module.exports.plugins || []).concat([
-    new webpack.optimize.ModuleConcatenationPlugin(),
+
     new webpack.DefinePlugin({
       'process.env': {
         NODE_ENV: '"production"'
@@ -168,7 +162,48 @@ if (process.env.NODE_ENV === 'production') {
     new webpack.LoaderOptionsPlugin({
       minimize: true
     }),
+
+    // enable scope hoisting
+    new webpack.optimize.ModuleConcatenationPlugin(),
+    // 对于moment时间过滤本地化！两种方式
+    // new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
+    new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /zh-cn/),
+
+    new webpack.optimize.CommonsChunkPlugin({
+        name: 'vendor',//公共模块提取
+        // minChunks: Infinity,
+        // minChunks: pageNameList.length,//至少三个模块共有部分，才会进行提取
+        minChunks (module) {
+          // any required modules inside node_modules are extracted to vendor
+          return (
+            module.resource &&
+            /\.js$/.test(module.resource) &&
+            module.resource.indexOf(
+              path.join(__dirname, './node_modules')
+            ) === 0
+          )
+        }
+    }),
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'manifest',
+      // chunks: ['vendor']
+      minChunks: Infinity
+    }),
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'index',
+      async: 'vendor-async',
+      children: true,
+      minChunks: 3
+    }),
+
+
     // new CleanWebpackPlugin('./dist'),
+  ])
+} else{
+  // 开发环境
+  module.exports.plugins = (module.exports.plugins || []).concat([
+    new webpack.NamedModulesPlugin(), // HMR shows correct file names in console on update.
+    new webpack.NoEmitOnErrorsPlugin(),  
   ])
 }
 

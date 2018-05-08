@@ -30,6 +30,12 @@ module.exports = {
       // name: '[name]_[chunkhash]',
       name: '[name]',
       // context: path.resolve(__dirname,'./src')
-    })
-  ],
+    }),
+    //压缩公共代码块
+    new webpack.optimize.UglifyJsPlugin({ 
+      compress: {
+        warnings: false
+      }
+    }),
+  ]
 };
