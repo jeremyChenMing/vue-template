@@ -10,6 +10,7 @@ var dlls = [
   'underscore',
 ];
 
+// 如果采用静态文件的static 路径，由于devserver 的 content base = false 关闭，所以需要把dll 变为静态文件
 module.exports = {
   output: {
     path:  path.resolve(__dirname, 'dist'),
@@ -23,7 +24,7 @@ module.exports = {
     dll: dlls,
   },
   plugins: [
-    new CleanPlugin(['dist']), //清理文件夹
+    new CleanPlugin(['dist']), //清理文件夹 //采用static的时候 清理文件放在run build里面
     new AssetsPlugin({filename: 'assets.json'}),
     new webpack.DllPlugin({
       path: 'manifest.json',

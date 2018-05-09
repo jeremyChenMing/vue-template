@@ -116,11 +116,16 @@ module.exports = {
     },
     extensions: ['*', '.js', '.vue', '.json']
   },
+  // 如果echarts 采用cdn 可以用下面这个 
+  // externals: {
+  //   "echarts": "echarts"
+  // }, 
   devServer: {
     historyApiFallback: true,
     noInfo: true,
     overlay: true,
     compress: true, 
+    contentBase: false, // since we use CopyWebpackPlugin. 此外这个注视掉
     proxy: {
       '/static/': {
         target: 'http://api.d.upvi.com/social-security/',
@@ -138,6 +143,14 @@ module.exports = {
         // context: path.resolve(__dirname,'./src'), // 指定一个路径作为上下文环境，需要与DllPlugin的context参数保持一致，建议统一设置为项目根目录
         manifest: require('./manifest.json'), // 指定manifest.json
     }),
+    // 如果采用static 静态文件的引入
+    new CopyWebpackPlugin([
+      {
+        from: path.resolve(__dirname, './static'),
+        to: 'static',
+        ignore: ['.*']
+      }
+    ])
   ]
 }
 
@@ -171,6 +184,8 @@ if (prod) {
 
 
   module.exports.plugins = (module.exports.plugins || []).concat([
+    // new CleanWebpackPlugin('./dist'), //采用static 所以run build的时候清理dist
+    
     new webpack.DefinePlugin({
       'process.env': {
         NODE_ENV: '"production"'
@@ -221,7 +236,7 @@ if (prod) {
     }),
 
 
-    // new CleanWebpackPlugin('./dist'),
+    
   ])
 } else{
   // 开发环境
