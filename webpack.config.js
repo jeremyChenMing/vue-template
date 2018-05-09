@@ -36,8 +36,8 @@ module.exports = {
   entry: entryObj, //只用一个index文件夹， 其余过滤掉， 提及会小于1M
   output: {
     path: path.resolve(__dirname, './dist'),
-    filename: prod ? 'js/[name].[chunkhash].js' : 'js/[name].js',
-    chunkFilename: prod ? 'js/[id].[chunkhash].js' : 'js/[id].chunk.js',//按需加载js命名 require.ensure中使用的
+    filename: prod ? 'js/[name].[chunkhash:7].js' : 'js/[name].js',
+    chunkFilename: prod ? 'js/[id].[chunkhash:7].js' : 'js/[id].chunk.js',//按需加载js命名 require.ensure中使用的
     publicPath: '/'
   },
   module: {
@@ -82,13 +82,32 @@ module.exports = {
         loader: 'babel-loader',
         exclude: /node_modules/
       },
+      // file-loader 返回的是图片的public URL
+      // {
+      //   test: /\.(png|jpg|gif|svg)$/,
+      //   loader: 'file-loader',
+      //   options: {
+      //     name: 'assets/[name].[ext]?[hash]'
+      //   }
+      // },
+      // 直接采用url-loader  它对file-loader进行了封装(可以不用file-loader) 其次可以对文件的大小作出限制
       {
-        test: /\.(png|jpg|gif|svg)$/,
-        loader: 'file-loader',
+        test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
+        loader: 'url-loader',
         options: {
-          name: 'assets/[name].[ext]?[hash]'
+          limit: 10000,
+          name: 'assets/[name].[hash:7].[ext]'
         }
-      }
+      },
+      // 本地引入iconfont文件，一般用不上
+      // {
+      //   test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
+      //   loader: 'url-loader',
+      //   options: {
+      //     limit: 10000,
+      //     name: 'assets/fonts/[name].[hash:7].[ext]'
+      //   }
+      // }
     ]
   },
   resolve: {
@@ -144,7 +163,7 @@ function getHtmlPlugin(name) {
 
 module.exports.plugins = (module.exports.plugins || []).concat(proHtmlPlugin);
 if (prod) {
-  // module.exports.devtool = '#source-map' //映射文件，方便调试 //取消
+  module.exports.devtool = '#cheap-module-source-map', //映射文件，方便调试 //对vendor的大小有很重要的作用
   module.exports.plugins = (module.exports.plugins || []).concat([
 
     new webpack.DefinePlugin({
