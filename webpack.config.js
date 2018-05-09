@@ -163,9 +163,14 @@ function getHtmlPlugin(name) {
 
 module.exports.plugins = (module.exports.plugins || []).concat(proHtmlPlugin);
 if (prod) {
-  module.exports.devtool = '#cheap-module-source-map', //映射文件，方便调试 //对vendor的大小有很重要的作用
-  module.exports.plugins = (module.exports.plugins || []).concat([
+  // 生产环境
+  // module.exports.devtool = '#cheap-module-source-map', //最小 构建慢 推荐用这个
+  // module.exports.devtool = '#cheap-source-map', //大小几乎同上  构建快速build speed(+) / rebuild speed(0)
+  module.exports.devtool = '#source-map', // 大小几乎同上
+  //映射文件，方便调试 //对vendor的大小有很重要的作用 cheap-source-map source-map
 
+
+  module.exports.plugins = (module.exports.plugins || []).concat([
     new webpack.DefinePlugin({
       'process.env': {
         NODE_ENV: '"production"'
